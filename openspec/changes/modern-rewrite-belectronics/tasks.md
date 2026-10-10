@@ -9,8 +9,8 @@
 
 ## 2. Core Protocol Engine
 
-- [ ] 2.1 Create `core-protocol` module with `ProtocolFrame` sealed class and streaming asterisk state machine parser. Verify unit tests pass for intact, fragmented, and corrupted packets.
-- [ ] 2.2 Implement outbound command serializer supporting button touch-down/up characters and slider values. Verify unit tests for rate limiting and payload formatting.
+- [x] 2.1 Create `core-protocol` module with `ProtocolFrame` sealed class and streaming asterisk state machine parser. Verify unit tests pass for intact, fragmented, and corrupted packets.
+- [x] 2.2 Implement outbound command serializer supporting button touch-down/up characters and slider values. Verify unit tests for rate limiting and payload formatting.
 
 ## 3. Bluetooth Communication Layer
 
@@ -20,8 +20,8 @@
 
 ## 4. Panel Data Models & JSON Serialization
 
-- [ ] 4.1 Define `PanelModel`, `WidgetConfig`, and concrete widget descriptors (`Button`, `Slider`, `Switch`, `Gauge`, `TextDisplay`, `Graph`) with `@Serializable`. Verify round-trip JSON serialization tests.
-- [ ] 4.2 Implement panel persistence manager providing create, save, clone, and export/import operations for `.json` and `.bep` panel files. Verify import validation.
+- [x] 4.1 Define `PanelModel`, `WidgetConfig`, and concrete widget descriptors (`Button`, `Slider`, `Switch`, `Gauge`, `TextDisplay`, `Graph`) with `@Serializable`. Verify round-trip JSON serialization tests.
+- [x] 4.2 Implement panel persistence manager providing create, save, clone, and export/import operations for `.json` and `.bep` panel files. Verify import validation.
 
 ## 5. UI Presentation & Jetpack Compose Canvas
 

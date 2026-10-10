@@ -47,9 +47,16 @@ proguard/
 .idea/caches
 .idea/shelf
 
-# Keystore files
+# Keystore & Secrets
 *.jks
 *.keystore
+*.pem
+*.key
+*.p12
+*.crt
+*.env*
+secrets.properties
+google-services.json
 
 # macOS
 .DS_Store
