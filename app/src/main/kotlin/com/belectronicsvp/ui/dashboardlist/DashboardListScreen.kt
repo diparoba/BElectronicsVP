@@ -28,9 +28,11 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.automirrored.filled.ViewQuilt
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import com.belectronicsvp.ui.about.AboutDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -80,6 +82,7 @@ fun DashboardListScreen(
     val panels by viewModel.panels.collectAsState()
 
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var panelToRename by remember { mutableStateOf<PanelModel?>(null) }
     var panelToDelete by remember { mutableStateOf<PanelModel?>(null) }
 
@@ -125,6 +128,15 @@ fun DashboardListScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { showAboutDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "About BElectronicsVP",
+                            tint = ElectricCyan
+                        )
+                    }
                     IconButton(
                         onClick = { importFileLauncher.launch("application/json") }
                     ) {
@@ -295,6 +307,10 @@ fun DashboardListScreen(
                 }
             }
         )
+    }
+
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 }
 

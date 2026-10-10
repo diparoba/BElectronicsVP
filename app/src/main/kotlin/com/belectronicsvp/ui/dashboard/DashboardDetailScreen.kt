@@ -26,7 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import com.belectronicsvp.ui.about.AboutDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -84,6 +86,7 @@ fun DashboardDetailScreen(
     val telemetryGraphs by viewModel.telemetryGraphs.collectAsState()
 
     var showDevicePicker by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var isBleScanning by remember { mutableStateOf(false) }
     val discoveredBleDevices = remember { mutableStateListOf<DiscoveredDevice>() }
     val pairedDevices = remember { mutableStateListOf<DiscoveredDevice>() }
@@ -230,6 +233,15 @@ fun DashboardDetailScreen(
                             tint = if (isEditMode) NeonGreen else TextSecondaryDark
                         )
                     }
+
+                    // About / Info Dialog
+                    IconButton(onClick = { showAboutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "About BElectronicsVP",
+                            tint = ElectricCyan
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = DarkSurface
@@ -280,6 +292,10 @@ fun DashboardDetailScreen(
                 showDevicePicker = false
             }
         )
+    }
+
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 }
 

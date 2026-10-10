@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Hexagonal outer tech ring -->
+    <path
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="2.5"
+        android:pathData="M54,22 L79,36 L79,68 L54,82 L29,68 L29,36 Z" />
+
+    <!-- Corner accent dots -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M54,22m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0 M79,36m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0 M79,68m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0 M54,82m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0 M29,68m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0 M29,36m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+
+    <!-- Stylized Bluetooth Glyph (Center) -->
+    <!-- Spine vertical line -->
+    <path
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,32 L54,72" />
+
+    <!-- Upper and Lower Wings (Classic BT Rune) -->
+    <path
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M43,40 L65,58 L54,68 M43,64 L65,46 L54,36" />
+
+    <!-- Central Electric Spark / Bolt (Neon Green) -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M55,48 L50,55 L54,55 L52,61 L58,53 L54,53 Z" />
+</vector>

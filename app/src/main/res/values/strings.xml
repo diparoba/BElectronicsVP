@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BElectronicsVP</string>
+    <string name="app_version_name">1.0.0</string>
+    <string name="app_edition">Open Source Edition</string>
+    <string name="app_tagline">Modern Jetpack Compose &amp; Kotlin rewrite of Keuwlsoft Bluetooth Electronics</string>
+    <string name="repo_url">https://github.com/diparoba/BElectronicsVP</string>
+    <string name="author_name">Diego Robalino (@diparoba)</string>
+    <string name="license_name">MIT License</string>
+    <string name="about_title">About BElectronicsVP</string>
+    <string name="about_description">An open-source, modernized telemetry and dashboard suite with Universal BLE (ESP32-S3/C3) and Classic SPP support, reverse engineered from the legendary Keuwlsoft Bluetooth Electronics.</string>
+</resources>
