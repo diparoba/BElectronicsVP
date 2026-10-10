@@ -5,7 +5,7 @@
 - [x] 1.1 Create root `README.md` introducing BElectronicsVP, its history as a reverse-engineered modern rewrite of Keuwlsoft Bluetooth Electronics, architecture, and OpenSpec documentation. Verify formatting and links.
 - [x] 1.2 Create `docs/protocol-specification.md` documenting the reverse-engineered serial protocol (`*<ID><VALUE>*`), data types, and timing constraints. Verify file exists and is linked in README.
 - [x] 1.3 Create `docs/arduino-quickstart.md` with complete, working sketches for Arduino Uno (HC-05/06) and ESP32. Verify code syntax and serial command parity.
-- [ ] 1.4 Initialize local git repository, commit the project documentation, and create the public GitHub repository `BElectronicsVP` via `gh repo create`. Verify remote push succeeds.
+- [x] 1.4 Initialize local git repository, commit the project documentation, and create the public GitHub repository `BElectronicsVP` via `gh repo create`. Verify remote push succeeds.
 
 ## 2. Core Protocol Engine
 
