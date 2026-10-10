@@ -96,30 +96,48 @@ We provide tested, ready-to-flash example sketches for:
 
 ## 🚀 Packaging & Installing the APK
 
-BElectronicsVP provides an automated script to build, verify, and package the Android APK directly into a `dist/` directory:
+BElectronicsVP includes automated scripts for **both Linux and Windows** that audit system dependencies (JDK, Android SDK, build tools) and package the Android APK directly into a `dist/` directory.
 
-### Prerequisites
-* **Java**: JDK 17 or JDK 21 (e.g. OpenJDK 21)
-* **Android SDK**: API 34 platform & build-tools (set via `ANDROID_HOME` or automatically detected by the script)
+### 📖 Step-by-Step Platform Guides
+For detailed prerequisites, package manager installation commands, and environment variable configuration:
+* 🐧 **[Linux Setup & APK Packaging Guide](docs/setup-and-build-linux.md)** (Ubuntu, Debian, Arch Linux, Fedora)
+* 🪟 **[Windows Setup & APK Packaging Guide](docs/setup-and-build-windows.md)** (Windows 10/11, `winget`, PowerShell & Batch)
+
+---
 
 ### Quick Build
-To compile and package the Debug APK (pre-signed with debug key, ready to sideload on any Android device):
+
+#### On Linux / macOS
 ```bash
+# 1. Audit installed dependencies (optional)
+./build-apk.sh --check
+
+# 2. Compile and package the Debug APK
 ./build-apk.sh
 ```
-Or execute directly from `scripts/`:
-```bash
-./scripts/build-apk.sh
-```
 
-### Script Options
-| Option | Description |
-|---|---|
-| `-d, --debug` | Build Debug APK (default, ready to install on phones) |
-| `-r, --release` | Build Release APK (unsigned) |
-| `-c, --clean` | Run `./gradlew clean` before compiling |
-| `-i, --install` | Automatically install APK onto a connected device via `adb` |
-| `-h, --help` | Show command usage and options |
+#### On Windows (PowerShell or Command Prompt)
+```powershell
+# 1. Audit installed dependencies (optional)
+.\build-apk.ps1 -CheckOnly
+
+# 2. Compile and package the Debug APK
+.\build-apk.ps1
+```
+*Or simply double-click / run `build-apk.bat` in CMD.*
+
+---
+
+### Script Options Reference
+
+| Linux / macOS Flag | Windows PowerShell Option | Description |
+|---|---|---|
+| `./build-apk.sh` | `.\build-apk.ps1` | Build Debug APK (default, pre-signed for immediate phone install) |
+| `./build-apk.sh --check` | `.\build-apk.ps1 -CheckOnly` | Audit installed tools and print dependency diagnostic table |
+| `./build-apk.sh -c` | `.\build-apk.ps1 -Clean` | Clean Gradle cache before assembling |
+| `./build-apk.sh -r` | `.\build-apk.ps1 -Release` | Build Release APK (unsigned) |
+| `./build-apk.sh -i` | `.\build-apk.ps1 -Install` | Build APK and immediately deploy onto connected phone via ADB |
+| `./build-apk.sh -h` | `.\build-apk.ps1 -Help` | Display help and parameter manual |
 
 ### Output Artifacts
 Packaged APKs are output to the `dist/` directory at the project root:

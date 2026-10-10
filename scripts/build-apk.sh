@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# BElectronicsVP - Automated APK Build & Packaging Script
+# BElectronicsVP - Automated APK Build & Dependency Checker (Linux / macOS)
 # ==============================================================================
-# This script compiles, packages, and verifies the Android APK for BElectronicsVP.
-# Output binaries are placed in the 'dist/' folder at the project root.
+# This script validates development dependencies (JDK, Android SDK, platform tools)
+# and packages the Android APK into the 'dist/' folder.
 # ==============================================================================
 
 set -euo pipefail
@@ -25,6 +25,7 @@ cd "${PROJECT_ROOT}"
 BUILD_TYPE="debug"
 CLEAN_FIRST=false
 AUTO_INSTALL=false
+CHECK_ONLY=false
 
 print_banner() {
     echo -e "${CYAN}${BOLD}"
@@ -34,24 +35,25 @@ print_banner() {
     echo " | |_) | |___| |  __/ (__| |_| | | (_) | | | | | (__\\__ \\ \\ V / |  __/ "
     echo " |____/|_____|_|\\___|\\___|\\__|_|  \\___/|_| |_|_|\\___|___/  \\_/  |_|    "
     echo -e "${NC}"
-    echo -e "${BOLD}BElectronicsVP Android APK Packaging Utility${NC}\n"
+    echo -e "${BOLD}BElectronicsVP Android Packaging & Dependency Checker (Linux)${NC}\n"
 }
 
 usage() {
-    echo -e "Usage: ${BOLD}./scripts/build-apk.sh [OPTIONS]${NC}"
+    echo -e "Usage: ${BOLD}./build-apk.sh [OPTIONS]${NC}"
     echo ""
     echo "Options:"
     echo "  -d, --debug       Build Debug APK (default, pre-signed with debug key)"
     echo "  -r, --release     Build Release APK (unsigned)"
     echo "  -c, --clean       Perform a clean Gradle build before assembling"
     echo "  -i, --install     Automatically install APK via adb to a connected device"
+    echo "  --check           Only check environment dependencies without building"
     echo "  -h, --help        Display this help message"
     echo ""
     echo "Examples:"
-    echo "  ./scripts/build-apk.sh              # Build debug APK"
-    echo "  ./scripts/build-apk.sh -c           # Clean and build debug APK"
-    echo "  ./scripts/build-apk.sh -r           # Build release APK"
-    echo "  ./scripts/build-apk.sh -i           # Build and install to connected phone"
+    echo "  ./build-apk.sh              # Check dependencies and build debug APK"
+    echo "  ./build-apk.sh --check      # Verify if all tools are installed"
+    echo "  ./build-apk.sh -c           # Clean build"
+    echo "  ./build-apk.sh -i           # Build and install to phone via ADB"
     exit 0
 }
 
@@ -74,6 +76,10 @@ while [[ $# -gt 0 ]]; do
             AUTO_INSTALL=true
             shift
             ;;
+        --check)
+            CHECK_ONLY=true
+            shift
+            ;;
         -h|--help)
             usage
             ;;
@@ -86,31 +92,55 @@ done
 
 print_banner
 
-# Step 1: Check Java Environment
-echo -e "${CYAN}[1/5] Checking Java Environment...${NC}"
-if ! command -v java >/dev/null 2>&1; then
-    echo -e "${RED}Error: Java is not found in PATH.${NC}"
-    echo "Please install JDK 17 or JDK 21 (e.g. OpenJDK 21) and ensure JAVA_HOME is configured."
-    exit 1
+echo -e "${BOLD}Checking required system dependencies...${NC}\n"
+
+ERRORS_FOUND=0
+
+# Detect Linux Distribution if available
+DISTRO="unknown"
+if [[ -f "/etc/os-release" ]]; then
+    # shellcheck disable=SC1091
+    DISTRO_ID=$(grep -E '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' || true)
+    DISTRO="${DISTRO_ID}"
 fi
 
-JAVA_VERSION_OUTPUT=$(java -version 2>&1 | head -n 1)
-echo -e "  Found: ${GREEN}${JAVA_VERSION_OUTPUT}${NC}"
+# 1. Check Java Runtime
+JAVA_STATUS="MISSING"
+JAVA_VERSION_TEXT=""
+if command -v java >/dev/null 2>&1; then
+    RAW_VERSION=$(java -version 2>&1 | head -n 1)
+    JAVA_VERSION_TEXT="${RAW_VERSION}"
+    # Verify Java version >= 17
+    MAJOR_VER=$(java -version 2>&1 | head -n 1 | awk -F '"' '/version/ {print $2}' | awk -F '.' '{print $1}')
+    if [[ -n "${MAJOR_VER}" && "${MAJOR_VER}" -ge 17 ]]; then
+        JAVA_STATUS="OK"
+    else
+        JAVA_STATUS="OUTDATED"
+    fi
+fi
 
-# Step 2: Check Android SDK Environment
-echo -e "\n${CYAN}[2/5] Checking Android SDK...${NC}"
+# 2. Check Java Compiler (javac)
+JAVAC_STATUS="MISSING"
+if command -v javac >/dev/null 2>&1; then
+    JAVAC_STATUS="OK"
+fi
+
+# 3. Check Android SDK
 SDK_DIR=""
-
+SDK_STATUS="MISSING"
 if [[ -n "${ANDROID_HOME:-}" && -d "${ANDROID_HOME}" ]]; then
     SDK_DIR="${ANDROID_HOME}"
 elif [[ -n "${ANDROID_SDK_ROOT:-}" && -d "${ANDROID_SDK_ROOT}" ]]; then
     SDK_DIR="${ANDROID_SDK_ROOT}"
 elif [[ -f "local.properties" ]]; then
-    SDK_DIR=$(grep -E '^sdk.dir=' local.properties | cut -d'=' -f2 | tr -d '\r' || true)
+    LOCAL_SDK=$(grep -E '^sdk.dir=' local.properties | cut -d'=' -f2 | tr -d '\r' || true)
+    if [[ -d "${LOCAL_SDK}" ]]; then
+        SDK_DIR="${LOCAL_SDK}"
+    fi
 fi
 
-# Fallback auto-detection for common SDK paths
-if [[ -z "${SDK_DIR}" || ! -d "${SDK_DIR}" ]]; then
+# Probe standard Linux paths if not set
+if [[ -z "${SDK_DIR}" ]]; then
     COMMON_PATHS=(
         "$HOME/Android/Sdk"
         "$HOME/Library/Android/sdk"
@@ -120,27 +150,135 @@ if [[ -z "${SDK_DIR}" || ! -d "${SDK_DIR}" ]]; then
     for p in "${COMMON_PATHS[@]}"; do
         if [[ -d "$p" ]]; then
             SDK_DIR="$p"
-            echo -e "  ${YELLOW}Detected Android SDK at: ${SDK_DIR}${NC}"
             echo "sdk.dir=${SDK_DIR}" > local.properties
-            echo -e "  Created ${GREEN}local.properties${NC} with detected SDK location."
             break
         fi
     done
 fi
 
-if [[ -z "${SDK_DIR}" || ! -d "${SDK_DIR}" ]]; then
-    echo -e "${RED}Error: Android SDK could not be located.${NC}"
-    echo "Please set ANDROID_HOME or configure sdk.dir in local.properties."
-    echo "Example: export ANDROID_HOME=$HOME/Android/Sdk"
+if [[ -n "${SDK_DIR}" && -d "${SDK_DIR}" ]]; then
+    SDK_STATUS="OK"
+fi
+
+# 4. Check Android Platform 34 and Build Tools
+PLATFORM_STATUS="MISSING"
+BUILD_TOOLS_STATUS="MISSING"
+if [[ "${SDK_STATUS}" == "OK" ]]; then
+    if [[ -d "${SDK_DIR}/platforms/android-34" ]]; then
+        PLATFORM_STATUS="OK"
+    fi
+    if compgen -G "${SDK_DIR}/build-tools/34.*" > /dev/null; then
+        BUILD_TOOLS_STATUS="OK"
+    fi
+fi
+
+# 5. Check ADB
+ADB_STATUS="OPTIONAL"
+if command -v adb >/dev/null 2>&1 || [[ -n "${SDK_DIR}" && -x "${SDK_DIR}/platform-tools/adb" ]]; then
+    ADB_STATUS="OK"
+fi
+
+# Print Diagnostic Summary Table
+echo -e "+-------------------------+------------+--------------------------------------------+"
+echo -e "| Component               | Status     | Notes / Location                           |"
+echo -e "+-------------------------+------------+--------------------------------------------+"
+
+# Java
+if [[ "${JAVA_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Java Runtime (JDK 17+)" "[OK]" "${JAVA_VERSION_TEXT:0:42}"
+elif [[ "${JAVA_STATUS}" == "OUTDATED" ]]; then
+    printf "| %-23s | ${YELLOW}%-10s${NC} | %-42s |\n" "Java Runtime (JDK 17+)" "[OUTDATED]" "JDK 17+ required (found older version)"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+else
+    printf "| %-23s | ${RED}%-10s${NC} | %-42s |\n" "Java Runtime (JDK 17+)" "[MISSING]" "java command not found"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+fi
+
+# Javac
+if [[ "${JAVAC_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Java Compiler (javac)" "[OK]" "JDK Development Kit found"
+else
+    printf "| %-23s | ${RED}%-10s${NC} | %-42s |\n" "Java Compiler (javac)" "[MISSING]" "Install a full JDK, not just JRE"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+fi
+
+# Android SDK
+if [[ "${SDK_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Android SDK" "[OK]" "${SDK_DIR:0:42}"
+else
+    printf "| %-23s | ${RED}%-10s${NC} | %-42s |\n" "Android SDK" "[MISSING]" "ANDROID_HOME or local.properties unset"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+fi
+
+# Android Platform API 34
+if [[ "${PLATFORM_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Platform API 34" "[OK]" "platforms/android-34 present"
+else
+    printf "| %-23s | ${RED}%-10s${NC} | %-42s |\n" "Platform API 34" "[MISSING]" "Install 'platforms;android-34'"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+fi
+
+# Build Tools 34
+if [[ "${BUILD_TOOLS_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Build Tools 34.0.0+" "[OK]" "build-tools/34.x present"
+else
+    printf "| %-23s | ${RED}%-10s${NC} | %-42s |\n" "Build Tools 34.0.0+" "[MISSING]" "Install 'build-tools;34.0.0'"
+    ERRORS_FOUND=$((ERRORS_FOUND + 1))
+fi
+
+# ADB
+if [[ "${ADB_STATUS}" == "OK" ]]; then
+    printf "| %-23s | ${GREEN}%-10s${NC} | %-42s |\n" "Android ADB Tool" "[OK]" "Ready for USB deployment"
+else
+    printf "| %-23s | ${YELLOW}%-10s${NC} | %-42s |\n" "Android ADB Tool" "[OPTIONAL]" "Install platform-tools for adb deploy"
+fi
+
+echo -e "+-------------------------+------------+--------------------------------------------+\n"
+
+# If dependencies are missing, guide user to fix them
+if [[ "${ERRORS_FOUND}" -gt 0 ]]; then
+    echo -e "${RED}${BOLD}Missing dependencies detected! (${ERRORS_FOUND} errors)${NC}"
+    echo -e "Please review the step-by-step setup guide: ${BOLD}docs/setup-and-build-linux.md${NC}\n"
+
+    echo -e "${BOLD}Quick installation instructions for your distribution:${NC}"
+    case "${DISTRO}" in
+        ubuntu|debian|pop|mint)
+            echo -e "  ${CYAN}# 1. Install OpenJDK 21:${NC}"
+            echo -e "  sudo apt update && sudo apt install -y openjdk-21-jdk"
+            echo -e "  ${CYAN}# 2. Install Android Command Line Tools / SDK:${NC}"
+            echo -e "  sudo apt install -y android-sdk adb"
+            ;;
+        arch|manjaro|endeavouros)
+            echo -e "  ${CYAN}# 1. Install OpenJDK 21:${NC}"
+            echo -e "  sudo pacman -S jdk21-openjdk android-tools"
+            echo -e "  ${CYAN}# 2. Install Android SDK (via AUR or Android Studio):${NC}"
+            echo -e "  yay -S android-sdk android-sdk-platform-tools android-platform-34"
+            ;;
+        fedora|rhel|centos)
+            echo -e "  ${CYAN}# 1. Install OpenJDK 21 & tools:${NC}"
+            echo -e "  sudo dnf install -y java-21-openjdk-devel android-tools"
+            ;;
+        *)
+            echo -e "  Install OpenJDK 21 and the Android SDK (Platform 34, Build-Tools 34.0.0)."
+            ;;
+    esac
+    echo -e "\nAlternatively, install ${BOLD}Android Studio${NC} from https://developer.android.com/studio"
+    echo -e "It includes JDK, SDK Manager, and platforms out of the box."
     exit 1
 fi
-echo -e "  Android SDK: ${GREEN}${SDK_DIR}${NC}"
+
+echo -e "${GREEN}${BOLD}✓ All development dependencies are satisfied!${NC}\n"
+
+if [[ "${CHECK_ONLY}" == true ]]; then
+    echo "Check completed successfully. Exiting."
+    exit 0
+fi
 
 # Ensure Gradle wrapper is executable
 chmod +x ./gradlew
 
-# Step 3: Gradle Assembly
-echo -e "\n${CYAN}[3/5] Compiling and Packaging APK...${NC}"
+# Step: Gradle Assembly
+echo -e "${CYAN}Compiling and Packaging APK...${NC}"
 
 GRADLE_TASKS=()
 if [[ "${CLEAN_FIRST}" == true ]]; then
@@ -160,11 +298,8 @@ fi
 echo -e "  Running: ${BOLD}./gradlew ${GRADLE_TASKS[*]}${NC}"
 ./gradlew "${GRADLE_TASKS[@]}"
 
-# Step 4: Verification and Distribution Copy
-echo -e "\n${CYAN}[4/5] Verifying Package Artifacts...${NC}"
-
+# Step: Verification and Distribution Copy
 if [[ ! -f "${EXPECTED_SOURCE}" ]]; then
-    # In case release output had a slightly different name
     FALLBACK_RELEASE="app/build/outputs/apk/release/app-release.apk"
     if [[ -f "${FALLBACK_RELEASE}" ]]; then
         EXPECTED_SOURCE="${FALLBACK_RELEASE}"
@@ -183,31 +318,36 @@ APK_SIZE_BYTES=$(wc -c < "${DIST_PATH}")
 APK_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", ${APK_SIZE_BYTES}/1048576}")
 SHA256_HASH=$(sha256sum "${DIST_PATH}" | awk '{print $1}')
 
-echo -e "  ${GREEN}✓ APK successfully generated and packaged!${NC}"
+echo -e "\n${GREEN}✓ APK successfully generated and packaged!${NC}"
 echo -e "  Location: ${BOLD}${DIST_PATH}${NC}"
 echo -e "  Size:     ${BOLD}${APK_SIZE_MB} MB${NC} (${APK_SIZE_BYTES} bytes)"
 echo -e "  SHA-256:  ${BOLD}${SHA256_HASH}${NC}"
 
-# Step 5: Optional ADB Installation
-echo -e "\n${CYAN}[5/5] Deployment & Installation${NC}"
+# Step: Optional ADB Installation
 if [[ "${AUTO_INSTALL}" == true ]]; then
-    if ! command -v adb >/dev/null 2>&1; then
-        echo -e "  ${YELLOW}Warning: 'adb' tool not found in PATH. Skipping auto-install.${NC}"
+    echo -e "\n${CYAN}Deploying to Connected Device...${NC}"
+    if ! command -v adb >/dev/null 2>&1 && [[ ! -x "${SDK_DIR}/platform-tools/adb" ]]; then
+        echo -e "  ${YELLOW}Warning: 'adb' tool not found. Skipping auto-install.${NC}"
     else
-        echo -e "  Checking connected devices via adb..."
-        DEVICE_COUNT=$(adb devices | grep -v "List of devices" | grep -c "device$" || true)
+        ADB_CMD="adb"
+        if ! command -v adb >/dev/null 2>&1; then
+            ADB_CMD="${SDK_DIR}/platform-tools/adb"
+        fi
+        echo -e "  Checking connected devices..."
+        DEVICE_COUNT=$("${ADB_CMD}" devices | grep -v "List of devices" | grep -c "device$" || true)
         if [[ "${DEVICE_COUNT}" -gt 0 ]]; then
             echo -e "  Installing ${DIST_PATH} onto connected device..."
-            adb install -r "${DIST_PATH}"
+            "${ADB_CMD}" install -r "${DIST_PATH}"
             echo -e "  ${GREEN}✓ Installation complete!${NC}"
         else
             echo -e "  ${YELLOW}No authorized device found with 'adb devices'. Connect your device with USB Debugging enabled.${NC}"
         fi
     fi
 else
-    echo -e "  To install directly on your Android phone via USB/Wi-Fi:"
+    echo -e "\n${BOLD}Installation Instructions:${NC}"
+    echo -e "  To install directly on your phone via USB/Wi-Fi:"
     echo -e "  ${BOLD}adb install -r ${DIST_PATH}${NC}"
-    echo -e "  Or simply copy ${BOLD}${DIST_PATH}${NC} to your phone storage and open it to install."
+    echo -e "  Or copy ${BOLD}${DIST_PATH}${NC} to phone storage and tap to install."
 fi
 
 echo -e "\n${GREEN}${BOLD}==============================================================================${NC}"
