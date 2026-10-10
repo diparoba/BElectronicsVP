@@ -19,3 +19,4 @@ rootProject.name = "BElectronicsVP"
 include(":core-protocol")
 include(":core-model")
 include(":core-bluetooth")
+include(":app")

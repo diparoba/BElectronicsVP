@@ -27,10 +27,10 @@
 
 ## 5. UI Presentation & Jetpack Compose Canvas
 
-- [ ] 5.1 Implement Material 3 dashboard list screen with CRUD operations (create, rename, clone, delete) and Android Share Sheet export/import integration. Verify UI actions and file sharing.
-- [ ] 5.2 Implement active dashboard screen with in-header interactive connection chip (1-tap reconnect without exiting panel) and device picker dialog with real-time search. Verify connection transitions.
-- [ ] 5.3 Implement interactive Compose widget components: `ButtonWidget`, `SliderWidget`, `GaugeWidget` (custom Canvas needle rendering), `TextDisplayWidget`, and `GraphWidget`. Verify state binding to protocol events.
-- [ ] 5.4 Implement `PanelCanvas` layout container supporting orientation rotation, dynamic coordinate scaling, and drag-and-drop editor mode. Verify widget placement and drag handling.
+- [x] 5.1 Implement Material 3 dashboard list screen with CRUD operations (create, rename, clone, delete) and Android Share Sheet export/import integration. Verify UI actions and file sharing.
+- [x] 5.2 Implement active dashboard screen with in-header interactive connection chip (1-tap reconnect without exiting panel) and device picker dialog with real-time search. Verify connection transitions.
+- [x] 5.3 Implement interactive Compose widget components: `ButtonWidget`, `SliderWidget`, `GaugeWidget` (custom Canvas needle rendering), `TextDisplayWidget`, and `GraphWidget`. Verify state binding to protocol events.
+- [x] 5.4 Implement `PanelCanvas` layout container supporting orientation rotation, dynamic coordinate scaling, and drag-and-drop editor mode. Verify widget placement and drag handling.
 
 ## Workflow follow-up
 
