@@ -14,11 +14,11 @@
 
 ## 3. Bluetooth Communication Layer
 
-- [ ] 3.1 Implement runtime permission helper handling Android 12+ (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `ACCESS_FINE_LOCATION`) with rationale dialogs. Verify permission flow logic.
-- [ ] 3.2 Implement Bluetooth Classic (SPP) connection manager using Coroutines and `StateFlow`, including RFCOMM fallback to channel 1. Verify connection state transitions.
-- [ ] 3.3 Implement Universal Bluetooth Low Energy (BLE) client with Nordic UART (NUS) support, legacy fallback, dynamic characteristic resolver, and MTU 512 negotiation for ESP32. Verify characteristic discovery and notify streams.
-- [ ] 3.4 Implement paired device search and real-time filtering helper. Verify filter by name and MAC address.
-- [ ] 3.5 Implement auto-reconnection and last-device persistence store. Verify state recall and reconnection triggers.
+- [x] 3.1 Implement runtime permission helper handling Android 12+ (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `ACCESS_FINE_LOCATION`) with rationale dialogs. Verify permission flow logic.
+- [x] 3.2 Implement Bluetooth Classic (SPP) connection manager using Coroutines and `StateFlow`, including RFCOMM fallback to channel 1. Verify connection state transitions.
+- [x] 3.3 Implement Universal Bluetooth Low Energy (BLE) client with Nordic UART (NUS) support, legacy fallback, dynamic characteristic resolver, and MTU 512 negotiation for ESP32. Verify characteristic discovery and notify streams.
+- [x] 3.4 Implement paired device search and real-time filtering helper. Verify filter by name and MAC address.
+- [x] 3.5 Implement auto-reconnection and last-device persistence store. Verify state recall and reconnection triggers.
 
 ## 4. Panel Data Models & JSON Serialization
 
