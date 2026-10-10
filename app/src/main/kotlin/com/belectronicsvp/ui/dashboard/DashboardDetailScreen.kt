@@ -1,11 +1,13 @@
 package com.belectronicsvp.ui.dashboard
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,13 +26,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import com.belectronicsvp.ui.about.AboutDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -38,6 +43,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.belectronicsvp.model.WidgetModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -58,6 +65,7 @@ import com.belectronicsvp.bluetooth.BluetoothPermissionHelper
 import com.belectronicsvp.bluetooth.ConnectionState
 import com.belectronicsvp.bluetooth.DeviceType
 import com.belectronicsvp.bluetooth.DiscoveredDevice
+import com.belectronicsvp.model.PanelOrientation
 import com.belectronicsvp.ui.canvas.PanelCanvas
 import com.belectronicsvp.ui.theme.DarkBackground
 import com.belectronicsvp.ui.theme.DarkSurface
@@ -87,6 +95,10 @@ fun DashboardDetailScreen(
 
     var showDevicePicker by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    val catalogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showCatalogSheet by remember { mutableStateOf(false) }
+    var showGridDensityDialog by remember { mutableStateOf(false) }
+    var widgetForConfig by remember { mutableStateOf<WidgetModel?>(null) }
     var isBleScanning by remember { mutableStateOf(false) }
     val discoveredBleDevices = remember { mutableStateListOf<DiscoveredDevice>() }
     val pairedDevices = remember { mutableStateListOf<DiscoveredDevice>() }
@@ -175,6 +187,24 @@ fun DashboardDetailScreen(
         }
     }
 
+    // Hardware Screen Orientation Lock
+    val activity = context as? Activity
+    DisposableEffect(panel?.orientation) {
+        val originalOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        when (panel?.orientation) {
+            PanelOrientation.LANDSCAPE -> {
+                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+            PanelOrientation.PORTRAIT -> {
+                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+            null -> {}
+        }
+        onDispose {
+            activity?.requestedOrientation = originalOrientation
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -225,6 +255,17 @@ fun DashboardDetailScreen(
 
                     Spacer(modifier = Modifier.width(6.dp))
 
+                    // Grid Density Selector (in Edit Mode)
+                    if (isEditMode) {
+                        IconButton(onClick = { showGridDensityDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.GridView,
+                                contentDescription = "Grid Density Settings",
+                                tint = ElectricCyan
+                            )
+                        }
+                    }
+
                     // Edit Mode Toggle
                     IconButton(onClick = { viewModel.toggleEditMode() }) {
                         Icon(
@@ -248,6 +289,22 @@ fun DashboardDetailScreen(
                 )
             )
         },
+        floatingActionButton = {
+            if (isEditMode) {
+                FloatingActionButton(
+                    onClick = { showCatalogSheet = true },
+                    containerColor = ElectricCyan,
+                    contentColor = DarkBackground,
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Widget",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        },
         containerColor = DarkBackground
     ) { innerPadding ->
         Box(
@@ -265,6 +322,14 @@ fun DashboardDetailScreen(
                     onSendCommand = { cmd -> viewModel.sendCommand(cmd) },
                     onWidgetMoved = { widgetId, newX, newY ->
                         viewModel.moveWidget(widgetId, newX, newY)
+                    },
+                    onWidgetResized = { widgetId, newW, newH ->
+                        viewModel.resizeWidget(widgetId, newW, newH)
+                    },
+                    onWidgetSelected = { widget ->
+                        if (isEditMode) {
+                            widgetForConfig = widget
+                        }
                     }
                 )
             } ?: Box(
@@ -296,6 +361,45 @@ fun DashboardDetailScreen(
 
     if (showAboutDialog) {
         AboutDialog(onDismiss = { showAboutDialog = false })
+    }
+
+    if (showCatalogSheet) {
+        WidgetCatalogSheet(
+            sheetState = catalogSheetState,
+            onDismiss = { showCatalogSheet = false },
+            onSelectWidget = { newWidget ->
+                showCatalogSheet = false
+                viewModel.addWidget(newWidget)
+                widgetForConfig = newWidget
+            }
+        )
+    }
+
+    if (showGridDensityDialog && panel != null) {
+        GridDensityDialog(
+            currentDensity = panel?.baseDensity ?: 8,
+            onDensitySelected = { density ->
+                viewModel.updateGridDensity(density)
+            },
+            onDismiss = { showGridDensityDialog = false }
+        )
+    }
+
+    widgetForConfig?.let { widgetToEdit ->
+        WidgetConfigDialog(
+            widget = widgetToEdit,
+            onSave = { updated ->
+                viewModel.updateWidget(updated)
+                widgetForConfig = null
+            },
+            onDelete = { id ->
+                viewModel.deleteWidget(id)
+                widgetForConfig = null
+            },
+            onDismiss = {
+                widgetForConfig = null
+            }
+        )
     }
 }
 

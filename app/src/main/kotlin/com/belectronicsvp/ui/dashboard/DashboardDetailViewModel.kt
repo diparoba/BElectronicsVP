@@ -183,4 +183,54 @@ class DashboardDetailViewModel(
         _panel.value = updatedPanel
         repository.savePanel(updatedPanel)
     }
+
+    fun resizeWidget(widgetId: String, newWidth: Float, newHeight: Float) {
+        val current = _panel.value ?: return
+        val updatedWidgets = current.widgets.map { widget ->
+            if (widget.id == widgetId) {
+                when (widget) {
+                    is com.belectronicsvp.model.WidgetModel.Button -> widget.copy(width = newWidth, height = newHeight)
+                    is com.belectronicsvp.model.WidgetModel.Slider -> widget.copy(width = newWidth, height = newHeight)
+                    is com.belectronicsvp.model.WidgetModel.Switch -> widget.copy(width = newWidth, height = newHeight)
+                    is com.belectronicsvp.model.WidgetModel.Gauge -> widget.copy(width = newWidth, height = newHeight)
+                    is com.belectronicsvp.model.WidgetModel.TextDisplay -> widget.copy(width = newWidth, height = newHeight)
+                    is com.belectronicsvp.model.WidgetModel.Graph -> widget.copy(width = newWidth, height = newHeight)
+                }
+            } else {
+                widget
+            }
+        }
+        val updatedPanel = current.copy(widgets = updatedWidgets)
+        _panel.value = updatedPanel
+        repository.savePanel(updatedPanel)
+    }
+
+    fun addWidget(widget: com.belectronicsvp.model.WidgetModel) {
+        val current = _panel.value ?: return
+        val updatedPanel = current.copy(widgets = current.widgets + widget)
+        _panel.value = updatedPanel
+        repository.savePanel(updatedPanel)
+    }
+
+    fun deleteWidget(widgetId: String) {
+        val current = _panel.value ?: return
+        val updatedPanel = current.copy(widgets = current.widgets.filter { it.id != widgetId })
+        _panel.value = updatedPanel
+        repository.savePanel(updatedPanel)
+    }
+
+    fun updateWidget(updatedWidget: com.belectronicsvp.model.WidgetModel) {
+        val current = _panel.value ?: return
+        val updatedWidgets = current.widgets.map { if (it.id == updatedWidget.id) updatedWidget else it }
+        val updatedPanel = current.copy(widgets = updatedWidgets)
+        _panel.value = updatedPanel
+        repository.savePanel(updatedPanel)
+    }
+
+    fun updateGridDensity(density: Int) {
+        val current = _panel.value ?: return
+        val updatedPanel = current.copy(baseDensity = density.coerceIn(4, 24))
+        _panel.value = updatedPanel
+        repository.savePanel(updatedPanel)
+    }
 }

@@ -54,8 +54,13 @@ class PanelRepository(
     }
 
     @Synchronized
-    fun createPanel(name: String, description: String = ""): PanelModel {
-        val panel = panelManager.createPanel(name, description)
+    fun createPanel(
+        name: String,
+        description: String = "",
+        orientation: com.belectronicsvp.model.PanelOrientation = com.belectronicsvp.model.PanelOrientation.LANDSCAPE,
+        baseDensity: Int = 8
+    ): PanelModel {
+        val panel = panelManager.createPanel(name, description, orientation, baseDensity)
         savePanel(panel)
         return panel
     }

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Polymorphic widget definitions supported by BElectronicsVP dashboards.
+ * Dimensions (x, y, width, height) are represented in discrete 1:1 grid cell units.
  */
 @Serializable
 sealed class WidgetModel {
@@ -21,8 +22,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 100f,
-        override val height: Float = 60f,
+        override val width: Float = 3f,
+        override val height: Float = 2f,
         override val label: String = "Button",
         val pressCommand: String = "1",
         val releaseCommand: String? = "0",
@@ -35,8 +36,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 200f,
-        override val height: Float = 50f,
+        override val width: Float = 6f,
+        override val height: Float = 2f,
         override val label: String = "Slider",
         val commandPrefix: String = "*S",
         val commandSuffix: String = "*",
@@ -51,8 +52,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 80f,
-        override val height: Float = 50f,
+        override val width: Float = 3f,
+        override val height: Float = 2f,
         override val label: String = "Switch",
         val onCommand: String = "H",
         val offCommand: String = "L",
@@ -65,8 +66,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 150f,
-        override val height: Float = 150f,
+        override val width: Float = 4f,
+        override val height: Float = 4f,
         override val label: String = "Gauge",
         val telemetryId: Char = 'A',
         val minValue: Double = 0.0,
@@ -80,8 +81,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 180f,
-        override val height: Float = 60f,
+        override val width: Float = 4f,
+        override val height: Float = 2f,
         override val label: String = "Display",
         val telemetryId: Char = 'T',
         val defaultText: String = "--"
@@ -93,8 +94,8 @@ sealed class WidgetModel {
         override val id: String,
         override val x: Float,
         override val y: Float,
-        override val width: Float = 250f,
-        override val height: Float = 150f,
+        override val width: Float = 6f,
+        override val height: Float = 4f,
         override val label: String = "Graph",
         val telemetryId: Char = 'G',
         val maxDataPoints: Int = 50,

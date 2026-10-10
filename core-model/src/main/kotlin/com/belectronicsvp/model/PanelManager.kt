@@ -9,13 +9,20 @@ import java.util.UUID
 class PanelManager {
 
     /**
-     * Creates a new blank panel with default grid dimensions.
+     * Creates a new blank panel with default grid dimensions and specified orientation.
      */
-    fun createPanel(name: String, description: String = ""): PanelModel {
+    fun createPanel(
+        name: String,
+        description: String = "",
+        orientation: PanelOrientation = PanelOrientation.LANDSCAPE,
+        baseDensity: Int = 8
+    ): PanelModel {
         return PanelModel(
             id = UUID.randomUUID().toString(),
             name = name.ifBlank { "Untitled Panel" },
             description = description,
+            orientation = orientation,
+            baseDensity = baseDensity,
             widgets = emptyList()
         )
     }

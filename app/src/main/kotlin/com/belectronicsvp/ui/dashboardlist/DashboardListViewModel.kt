@@ -20,8 +20,13 @@ class DashboardListViewModel(
             initialValue = repository.getAllPanels()
         )
 
-    fun createPanel(name: String, description: String = ""): PanelModel {
-        return repository.createPanel(name, description)
+    fun createPanel(
+        name: String,
+        description: String = "",
+        orientation: com.belectronicsvp.model.PanelOrientation = com.belectronicsvp.model.PanelOrientation.LANDSCAPE,
+        baseDensity: Int = 8
+    ): PanelModel {
+        return repository.createPanel(name, description, orientation, baseDensity)
     }
 
     fun renamePanel(id: String, newName: String) {

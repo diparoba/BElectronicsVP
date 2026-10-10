@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.automirrored.filled.ViewQuilt
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import com.belectronicsvp.model.PanelOrientation
 import com.belectronicsvp.ui.about.AboutDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -39,6 +41,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -207,6 +211,7 @@ fun DashboardListScreen(
     if (showCreateDialog) {
         var newName by remember { mutableStateOf("") }
         var newDesc by remember { mutableStateOf("") }
+        var selectedOrientation by remember { mutableStateOf(PanelOrientation.LANDSCAPE) }
 
         AlertDialog(
             onDismissRequest = { showCreateDialog = false },
@@ -227,13 +232,48 @@ fun DashboardListScreen(
                         label = { Text("Description (Optional)") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Screen Orientation",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimaryDark,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = selectedOrientation == PanelOrientation.LANDSCAPE,
+                            onClick = { selectedOrientation = PanelOrientation.LANDSCAPE },
+                            label = { Text("Horizontal") },
+                            leadingIcon = if (selectedOrientation == PanelOrientation.LANDSCAPE) {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = selectedOrientation == PanelOrientation.PORTRAIT,
+                            onClick = { selectedOrientation = PanelOrientation.PORTRAIT },
+                            label = { Text("Vertical") },
+                            leadingIcon = if (selectedOrientation == PanelOrientation.PORTRAIT) {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         if (newName.isNotBlank()) {
-                            val created = viewModel.createPanel(newName.trim(), newDesc.trim())
+                            val created = viewModel.createPanel(
+                                name = newName.trim(),
+                                description = newDesc.trim(),
+                                orientation = selectedOrientation
+                            )
                             showCreateDialog = false
                             onOpenPanel(created.id)
                         }
@@ -364,7 +404,13 @@ fun DashboardCard(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Grid: ${panel.gridColumns}x${panel.gridRows}",
+                        text = if (panel.orientation == PanelOrientation.LANDSCAPE) "Horizontal" else "Vertical",
+                        fontSize = 12.sp,
+                        color = TextSecondaryDark
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Density: ${panel.baseDensity}",
                         fontSize = 12.sp,
                         color = TextSecondaryDark
                     )
