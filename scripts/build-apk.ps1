@@ -56,6 +56,24 @@ Write-Host "`nChecking required Windows system dependencies...`n" -ForegroundCol
 
 $ErrorsFound = 0
 
+# Auto-detect Java on Windows if not in PATH
+if (-not (Get-Command java -ErrorAction SilentlyContinue) -or -not (Get-Command javac -ErrorAction SilentlyContinue)) {
+    $probePaths = @(
+        "$env:JAVA_HOME",
+        (Get-ChildItem "C:\Program Files\Eclipse Adoptium" -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "jdk-21*" } | Select-Object -First 1 -ExpandProperty FullName),
+        (Get-ChildItem "C:\Program Files\Microsoft" -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "jdk-21*" } | Select-Object -First 1 -ExpandProperty FullName),
+        (Get-ChildItem "C:\Program Files\Java" -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "jdk-21*" } | Select-Object -First 1 -ExpandProperty FullName),
+        "C:\Program Files\Android\Android Studio\jbr"
+    )
+    foreach ($p in $probePaths) {
+        if ($p -and (Test-Path "$p\bin\java.exe")) {
+            $env:JAVA_HOME = $p
+            $env:Path = "$p\bin;" + $env:Path
+            break
+        }
+    }
+}
+
 # 1. Check Java
 $JavaCmd = Get-Command java -ErrorAction SilentlyContinue
 $JavaStatus = "MISSING"

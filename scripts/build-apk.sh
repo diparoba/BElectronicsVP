@@ -104,6 +104,49 @@ if [[ -f "/etc/os-release" ]]; then
     DISTRO="${DISTRO_ID}"
 fi
 
+# Auto-detect Java (JDK) via version managers (mise, asdf, sdkman) or standard paths
+if ! command -v java >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1; then
+    # 1. Check mise tool
+    if command -v mise >/dev/null 2>&1; then
+        MISE_JAVA=$(mise where java 2>/dev/null || true)
+        if [[ -n "${MISE_JAVA}" && -d "${MISE_JAVA}/bin" ]]; then
+            export JAVA_HOME="${MISE_JAVA}"
+            export PATH="${JAVA_HOME}/bin:$PATH"
+        fi
+    fi
+
+    # 2. Probe default mise install directory
+    if ! command -v java >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1; then
+        if [[ -d "$HOME/.local/share/mise/installs/java" ]]; then
+            MISE_DIR=$(find "$HOME/.local/share/mise/installs/java" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort -V | tail -n 1 || true)
+            if [[ -n "${MISE_DIR}" && -d "${MISE_DIR}/bin" ]]; then
+                export JAVA_HOME="${MISE_DIR}"
+                export PATH="${JAVA_HOME}/bin:$PATH"
+            fi
+        fi
+    fi
+
+    # 3. Probe asdf / sdkman / system JVM
+    if ! command -v java >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1; then
+        if [[ -d "$HOME/.asdf/installs/java" ]]; then
+            ASDF_DIR=$(find "$HOME/.asdf/installs/java" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort -V | tail -n 1 || true)
+            if [[ -n "${ASDF_DIR}" && -d "${ASDF_DIR}/bin" ]]; then
+                export JAVA_HOME="${ASDF_DIR}"
+                export PATH="${JAVA_HOME}/bin:$PATH"
+            fi
+        elif [[ -d "$HOME/.sdkman/candidates/java/current/bin" ]]; then
+            export JAVA_HOME="$HOME/.sdkman/candidates/java/current"
+            export PATH="${JAVA_HOME}/bin:$PATH"
+        else
+            SYS_DIR=$(find /usr/lib/jvm /usr/lib64/jvm -mindepth 1 -maxdepth 1 -type d 2>/dev/null | grep -E 'java-(17|21)' | sort -V | tail -n 1 || true)
+            if [[ -n "${SYS_DIR}" && -d "${SYS_DIR}/bin" ]]; then
+                export JAVA_HOME="${SYS_DIR}"
+                export PATH="${JAVA_HOME}/bin:$PATH"
+            fi
+        fi
+    fi
+fi
+
 # 1. Check Java Runtime
 JAVA_STATUS="MISSING"
 JAVA_VERSION_TEXT=""
