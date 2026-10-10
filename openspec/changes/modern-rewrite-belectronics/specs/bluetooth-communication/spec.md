@@ -17,6 +17,13 @@ The system SHALL scan for nearby paired and unadvertised Bluetooth Classic and B
 - **WHEN** user denies runtime permissions on Android 12+
 - **THEN** system displays explanatory rationale dialog guiding the user to app settings without crashing
 
+### Requirement: Paired Device Search and Filtering
+The system SHALL provide real-time search filtering across paired and discovered Bluetooth devices.
+
+#### Scenario: Filter devices by name or MAC address
+- **WHEN** user types a query into the device search bar
+- **THEN** system instantly filters the list showing only matching devices by name or MAC address with device type tags
+
 ### Requirement: Bluetooth Classic Connection Lifecycle
 The system SHALL establish and maintain an RFCOMM SPP socket connection with automatic fallback to channel 1 reflection.
 
@@ -28,9 +35,24 @@ The system SHALL establish and maintain an RFCOMM SPP socket connection with aut
 - **WHEN** the remote Bluetooth device powers off or moves out of range
 - **THEN** system detects socket closure, notifies user with a toast or snackbar, and transitions StateFlow to Disconnected
 
-### Requirement: Bluetooth Low Energy Connection
-The system SHALL connect to BLE UART peripherals and negotiate appropriate MTU sizes for packet streaming.
+### Requirement: Universal BLE GATT Discovery and MTU Negotiation
+The system SHALL dynamically resolve BLE UART services across Nordic UART (NUS), legacy HM-10, and custom profiles, negotiating maximum MTU for modern ESP32 microcontrollers.
 
-#### Scenario: Connect to ESP32 BLE peripheral
-- **WHEN** user connects to a BLE device advertising Nordic or standard UART service
-- **THEN** system discovers characteristics, enables notifications on RX characteristic, and marks connection as ready
+#### Scenario: Connect to modern ESP32 running Nordic UART service
+- **WHEN** user connects to an ESP32 advertising Nordic UART Service UUID 6E400001
+- **THEN** system discovers TX and RX characteristics, requests MTU of 512 bytes, enables notifications, and transitions to Connected
+
+#### Scenario: Connect to custom or legacy BLE peripheral
+- **WHEN** user connects to a BLE device without standard Nordic UUID
+- **THEN** system scans all services for Notify and Write characteristics as an automatic fallback rather than failing connection
+
+### Requirement: Auto-Reconnect and In-Dashboard Quick Connect
+The system SHALL remember the last connected device and enable single-tap reconnection directly inside the active dashboard screen.
+
+#### Scenario: Tap reconnect chip from dashboard top bar
+- **WHEN** user taps the disconnected status chip in the dashboard header
+- **THEN** system initiates direct connection to the last synced device in the background without opening connection modal
+
+#### Scenario: Automatic connection on dashboard open
+- **WHEN** user opens a dashboard with auto-reconnect preference enabled
+- **THEN** system automatically establishes connection to the last saved device and displays connection progress spinner

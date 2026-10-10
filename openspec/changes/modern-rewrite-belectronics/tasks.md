@@ -16,7 +16,9 @@
 
 - [ ] 3.1 Implement runtime permission helper handling Android 12+ (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `ACCESS_FINE_LOCATION`) with rationale dialogs. Verify permission flow logic.
 - [ ] 3.2 Implement Bluetooth Classic (SPP) connection manager using Coroutines and `StateFlow`, including RFCOMM fallback to channel 1. Verify connection state transitions.
-- [ ] 3.3 Implement Bluetooth Low Energy (BLE) UART client with MTU chunking and notification listener. Verify characteristic read/write flow.
+- [ ] 3.3 Implement Universal Bluetooth Low Energy (BLE) client with Nordic UART (NUS) support, legacy fallback, dynamic characteristic resolver, and MTU 512 negotiation for ESP32. Verify characteristic discovery and notify streams.
+- [ ] 3.4 Implement paired device search and real-time filtering helper. Verify filter by name and MAC address.
+- [ ] 3.5 Implement auto-reconnection and last-device persistence store. Verify state recall and reconnection triggers.
 
 ## 4. Panel Data Models & JSON Serialization
 
@@ -25,9 +27,10 @@
 
 ## 5. UI Presentation & Jetpack Compose Canvas
 
-- [ ] 5.1 Setup Jetpack Compose Material 3 theme, navigation, and top bar with device connection status indicator and scan modal. Verify UI renders in preview.
-- [ ] 5.2 Implement interactive Compose widget components: `ButtonWidget`, `SliderWidget`, `GaugeWidget` (custom Canvas needle rendering), `TextDisplayWidget`, and `GraphWidget`. Verify state binding to protocol events.
-- [ ] 5.3 Implement `PanelCanvas` layout container supporting orientation rotation, dynamic coordinate scaling, and drag-and-drop editor mode. Verify widget placement and drag handling.
+- [ ] 5.1 Implement Material 3 dashboard list screen with CRUD operations (create, rename, clone, delete) and Android Share Sheet export/import integration. Verify UI actions and file sharing.
+- [ ] 5.2 Implement active dashboard screen with in-header interactive connection chip (1-tap reconnect without exiting panel) and device picker dialog with real-time search. Verify connection transitions.
+- [ ] 5.3 Implement interactive Compose widget components: `ButtonWidget`, `SliderWidget`, `GaugeWidget` (custom Canvas needle rendering), `TextDisplayWidget`, and `GraphWidget`. Verify state binding to protocol events.
+- [ ] 5.4 Implement `PanelCanvas` layout container supporting orientation rotation, dynamic coordinate scaling, and drag-and-drop editor mode. Verify widget placement and drag handling.
 
 ## Workflow follow-up
 
