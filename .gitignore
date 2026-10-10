@@ -9,6 +9,7 @@ decompiled_src/
 *.aar
 *.ap_
 *.aab
+dist/
 
 # Files for the ART/Dalvik VM
 *.dex

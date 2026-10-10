@@ -94,17 +94,59 @@ We provide tested, ready-to-flash example sketches for:
 
 ---
 
+## 🚀 Packaging & Installing the APK
+
+BElectronicsVP provides an automated script to build, verify, and package the Android APK directly into a `dist/` directory:
+
+### Prerequisites
+* **Java**: JDK 17 or JDK 21 (e.g. OpenJDK 21)
+* **Android SDK**: API 34 platform & build-tools (set via `ANDROID_HOME` or automatically detected by the script)
+
+### Quick Build
+To compile and package the Debug APK (pre-signed with debug key, ready to sideload on any Android device):
+```bash
+./build-apk.sh
+```
+Or execute directly from `scripts/`:
+```bash
+./scripts/build-apk.sh
+```
+
+### Script Options
+| Option | Description |
+|---|---|
+| `-d, --debug` | Build Debug APK (default, ready to install on phones) |
+| `-r, --release` | Build Release APK (unsigned) |
+| `-c, --clean` | Run `./gradlew clean` before compiling |
+| `-i, --install` | Automatically install APK onto a connected device via `adb` |
+| `-h, --help` | Show command usage and options |
+
+### Output Artifacts
+Packaged APKs are output to the `dist/` directory at the project root:
+* **Debug APK**: `dist/BElectronicsVP-v1.0.0-debug.apk`
+* **Release APK**: `dist/BElectronicsVP-v1.0.0-release-unsigned.apk`
+
+### Installing to Android Device
+Via ADB:
+```bash
+adb install -r dist/BElectronicsVP-v1.0.0-debug.apk
+```
+Or simply copy `dist/BElectronicsVP-v1.0.0-debug.apk` to your phone storage (USB, email, Google Drive) and open it to install.
+
+---
+
 ## 📋 OpenSpec Development
 
 This project uses [OpenSpec](openspec/) to ensure all features, protocols, and tasks are transparently planned and documented:
 
-* **Proposal**: [`openspec/changes/modern-rewrite-belectronics/proposal.md`](openspec/changes/modern-rewrite-belectronics/proposal.md)
-* **Technical Design**: [`openspec/changes/modern-rewrite-belectronics/design.md`](openspec/changes/modern-rewrite-belectronics/design.md)
-* **Tracked Tasks**: [`openspec/changes/modern-rewrite-belectronics/tasks.md`](openspec/changes/modern-rewrite-belectronics/tasks.md)
-* **Specs**:
-  * [Bluetooth Communication Spec](openspec/changes/modern-rewrite-belectronics/specs/bluetooth-communication/spec.md)
-  * [Serial Protocol Spec](openspec/changes/modern-rewrite-belectronics/specs/serial-protocol/spec.md)
-  * [Panel Management Spec](openspec/changes/modern-rewrite-belectronics/specs/panel-management/spec.md)
+* **Main Specifications**:
+  * [Bluetooth Communication Spec](openspec/specs/bluetooth-communication/spec.md)
+  * [Serial Protocol Spec](openspec/specs/serial-protocol/spec.md)
+  * [Panel Management Spec](openspec/specs/panel-management/spec.md)
+* **Archived Modern Rewrite Change**: [`openspec/changes/archive/2026-10-10-modern-rewrite-belectronics/`](openspec/changes/archive/2026-10-10-modern-rewrite-belectronics/)
+  * [Proposal](openspec/changes/archive/2026-10-10-modern-rewrite-belectronics/proposal.md)
+  * [Design Architecture](openspec/changes/archive/2026-10-10-modern-rewrite-belectronics/design.md)
+  * [Task Checklist (17/17 Complete)](openspec/changes/archive/2026-10-10-modern-rewrite-belectronics/tasks.md)
 
 ---
 
@@ -112,3 +154,4 @@ This project uses [OpenSpec](openspec/) to ensure all features, protocols, and t
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 All reverse engineering was performed cleanly for interoperability, research, and modern device accessibility.
+
