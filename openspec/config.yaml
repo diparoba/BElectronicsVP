@@ -1,0 +1,4 @@
+schema: spec-driven
+
+context: |
+  All documentation, OpenSpec specifications, architectural designs, code comments, and guides must be written in English.
